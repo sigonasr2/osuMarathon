@@ -43,10 +43,10 @@ public class ListItem{
 		songLoc = new File(f.getParent()+File.separatorChar+line.replace(targetString, ""));
 		System.out.println("SongLoc: "+songLoc);
 		
-		File filer = new File(songLoc.getName().replace(".mp3", "_A.mp3"));
+		File filer = new File(songTitle.replace(".osu", ".mp3"));
 	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
-		String command = "ffmpeg -i \""+songLoc.getAbsolutePath()+"\" -f mp3 -b:a 128k -ar 44100 -ac 2 \""+songLoc.getName().replace(".mp3", "_A.mp3")+"\"";
+		String command = "ffmpeg -i \""+songLoc.getAbsolutePath()+"\" -f mp3 -b:a 128k -ar 44100 -ac 2 \""+songTitle.replace(".osu", ".mp3")+"\"";
 		CommandLine cmdLine = CommandLine.parse(command);
 		DefaultExecutor exec = new DefaultExecutor();
 		exec.setStreamHandler(streamHandler);

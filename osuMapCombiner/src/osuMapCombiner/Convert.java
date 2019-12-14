@@ -188,7 +188,7 @@ BeatmapSetID:-1
 				split[2] = Integer.toString(Integer.parseInt(split[2])+(int)timePoint);
 				if (split.length>=6) {
 					//Might be a spinner.
-					if (!split[5].contains("|")) {
+					if (!split[5].contains("|") && !split[5].contains(":")) {
 						//This is a spinner.
 						split[5] = Integer.toString(Integer.parseInt(split[5])+(int)timePoint);
 					} else {
@@ -257,7 +257,7 @@ BeatmapSetID:-1
 			fw2 = new FileWriter(f);
 			BufferedWriter bw2 = new BufferedWriter(fw2);
 			for (int i=0;i<maps.size();i++) {
-				File filer = new File(maps.get(i).songLoc.getName().replace(".mp3", "_A.mp3"));
+				File filer = new File(maps.get(i).songTitle.replace(".osu", ".mp3"));
 				bw2.write("file '"+filer.getAbsolutePath().replace("'", "'\\''")+"'\n");
 			}
 			bw2.close();
