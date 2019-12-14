@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
@@ -25,10 +27,13 @@ public class ListItem{
 	String[] data;
 	List<String> timingPoints;
 	List<String> hitObjects;
+	List<String> breaks;
+	boolean failed=false;
 	public ListItem(File f) {
 		//this.songTitle=s;
 		timingPoints = new ArrayList<String>();
 		hitObjects = new ArrayList<String>();
+		breaks = new ArrayList<String>();
 		songTitle = f.getName();
 		System.out.println("Song Title: "+songTitle);
 		data = utils.readFromFile(f.getAbsolutePath());
@@ -74,8 +79,21 @@ public class ListItem{
 			}
 		}
 		
+		osuMapCombiner.duration += songDuration;
 		//osuMapCombiner.duration += songDuration = mp3utils.GetSongDuration(songLoc.getAbsolutePath());
 		System.out.println("Song duration of "+songTitle+" : "+songDuration+"ms");
+		
+
+		targetString = "Mode: ";
+		do {
+			line = data[i++];
+		} while (!line.contains(targetString));
+		int mode = Integer.parseInt(line.replace(targetString, "").trim());
+		if (mode!=0) {
+			JOptionPane.showMessageDialog(osuMapCombiner.main.f, "This is not an osu! mode map! Parsing has been canceled.");
+			failed=true;
+			return;
+		}
 		
 		targetString="[Difficulty]";
 		do {
@@ -105,6 +123,20 @@ public class ListItem{
 				}break;
 			}
 		}
+		targetString="[Events]";
+		do {
+			line = data[i++];
+		} while (!line.contains(targetString));
+
+		do {
+			line=data[i++];
+			if (line.trim().length()>3) {
+				if (line.trim().startsWith("2,") && line.split(",").length==3) {
+					breaks.add(line);
+				}
+			}
+		} while (line.trim().length()>3);
+		
 		targetString="[TimingPoints]";
 		do {
 			line = data[i++];

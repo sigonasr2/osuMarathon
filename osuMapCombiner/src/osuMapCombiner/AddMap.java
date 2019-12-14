@@ -19,7 +19,13 @@ public class AddMap {
 	public void openDialog() {
 		int val = chooser.showOpenDialog(null);
 		if (val==JFileChooser.APPROVE_OPTION) {
-			osuMapCombiner.model.addElement(new ListItem(chooser.getSelectedFile()));
+			ListItem temp = new ListItem(chooser.getSelectedFile());
+			if (!temp.failed) {
+				osuMapCombiner.model.addElement(temp);
+				if (osuMapCombiner.model.getSize()>=2) {
+					osuMapCombiner.main.button2.setEnabled(true);
+				}
+			}
 		}
 	}
 	

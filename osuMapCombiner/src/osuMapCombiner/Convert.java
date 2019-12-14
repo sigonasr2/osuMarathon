@@ -116,8 +116,8 @@ BeatmapSetID:-1
 		marathonMap.add("[Metadata]");
 		marathonMap.add("Title:"+marathonName);
 		marathonMap.add("TitleUnicode:"+marathonName);
-		marathonMap.add("Artist:"+marathonName);
-		marathonMap.add("Creator:"+marathonName);
+		marathonMap.add("Artist:["+maps.size()+" songs]");
+		marathonMap.add("Creator:osu!Marathon");
 		marathonMap.add("Version:Marathon");
 		marathonMap.add("Source:"+marathonName);
 		marathonMap.add("Tags:"+marathonName);
@@ -156,8 +156,38 @@ BeatmapSetID:-1
  */
 		marathonMap.add("[Events]");
 		marathonMap.add("//Background and Video events\r\n" + 
-				"//Break Periods\r\n" + 
-				"//Storyboard Layer 0 (Background)\r\n" + 
+				"//Break Periods\r\n");
+
+		timePoint=0;
+		remainder=0;
+		for (int i=0;i<maps.size();i++) {
+			ListItem map = maps.get(i);
+			remainder = timePoint-Math.floor(timePoint);
+			while (remainder>=1) {
+				timePoint++;
+				remainder--;
+			}
+			List<String> breaks = maps.get(i).breaks;
+			if (timePoint==0) {
+				marathonMap.addAll(breaks);
+			} else {
+				for (int j=0;j<breaks.size();j++) {
+					String[] b = breaks.get(j).split(",");
+					b[1] = Integer.toString(Integer.parseInt(b[1])+(int)timePoint);
+					b[2] = Integer.toString(Integer.parseInt(b[2])+(int)timePoint);
+					StringBuilder breakString = new StringBuilder(b[0]);
+					for (int k=1;k<b.length;k++) {
+						breakString.append(",");
+						breakString.append(b[k]);
+					}
+					marathonMap.add(breakString.toString());
+				}
+			}
+			timePoint += map.songDuration;
+		}
+		int breaksEndIndex = marathonMap.size()-1; // Store the last break so we can append to it a little later. 
+		
+				marathonMap.add("//Storyboard Layer 0 (Background)\r\n" + 
 				"//Storyboard Layer 1 (Fail)\r\n" + 
 				"//Storyboard Layer 2 (Pass)\r\n" + 
 				"//Storyboard Layer 3 (Foreground)\r\n" + 
@@ -174,6 +204,8 @@ BeatmapSetID:-1
 
 		timePoint=0;
 		remainder=0;
+		Integer breakStartPoint = -1;
+		Integer breakEndPoint = -1;
 		for (int i=0;i<maps.size();i++) {
 			ListItem map = maps.get(i);
 			remainder = timePoint-Math.floor(timePoint);
@@ -186,6 +218,22 @@ BeatmapSetID:-1
 				String hitobject = map.hitObjects.get(j);
 				String[] split = hitobject.split(",");
 				split[2] = Integer.toString(Integer.parseInt(split[2])+(int)timePoint);
+				if (j==0 && breakStartPoint!=-1) {
+					//Setup a break.
+					breakEndPoint = Integer.parseInt(split[2])-1000;
+					marathonMap.add(breaksEndIndex,"2,"+breakStartPoint+","+breakEndPoint); // Store the last break so we can append to it a little later.
+					breakStartPoint = -1;
+				} else {
+					breakStartPoint = Integer.parseInt(split[2])+1000;
+				}
+				if (j==0) {
+					//Reset the combo color if this is the first note of the next song. (Third bit indicates new combo)
+					int numb = Integer.parseInt(split[3]);
+					if (numb==1 || numb==2 || numb==8) {
+						numb+=4;
+					}
+					split[3] = Integer.toString(numb);
+				}
 				if (split.length>=6) {
 					//Might be a spinner.
 					if (!split[5].contains("|") && !split[5].contains(":")) {
@@ -309,6 +357,8 @@ BeatmapSetID:-1
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		JOptionPane.showMessageDialog(osuMapCombiner.main.f, "Marathon map successfully created! Search for "+marathonName+" in osu! to play it!");
 	}
 	
 	public static double AverageValues(DifficultyValues val,List<ListItem> maps) {

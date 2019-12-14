@@ -41,6 +41,8 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 	
 	public static JFrame f = new JFrame();
 	public static osuMapCombiner main;
+	public JButton button = new JButton("+");
+	public JButton button2 = new JButton("Combine");
 	
 	osuMapCombiner() {
 		osuMapCombiner.main = this;
@@ -56,16 +58,16 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 		
 		Component c = Box.createRigidArea(new Dimension(240,32));
 		
-		JButton button = new JButton("+");
 		button.setActionCommand("Add");
 		button.setPreferredSize(new Dimension(42,42));
 		button.addActionListener(this);
-		JButton button2 = new JButton("Combine");
 		button2.setActionCommand("Combine");
 		button2.setPreferredSize(new Dimension(360,24));
 		button2.addActionListener(this);
 		
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		f.setResizable(false);
+		button2.setEnabled(false);
 		
 		FlowLayout layout = new FlowLayout();
 		f.setLayout(layout);
@@ -126,12 +128,17 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 				mapdialog.openDialog();
 			}break;
 			case "Combine":{
-				int pane = JOptionPane.showConfirmDialog(f,"A marathon map with all "+model.getSize()+" maps will be created. The total duration of the marathon map will be "+
-						Math.floor(duration/1000)+"s long. Proceed?"
-			);
-			if (pane == JOptionPane.YES_OPTION) {
-				Convert.Convert();
-			}
+				if (model.getSize()>=2) {
+						int pane = JOptionPane.showConfirmDialog(f,"A marathon map with all "+model.getSize()+" maps will be created. The total duration of the marathon map will be "+
+								(int)Math.floor(duration/1000)+"s long. Proceed?"
+					);
+					if (pane == JOptionPane.YES_OPTION) {
+						Convert.Convert();
+					}
+				} else {
+					button2.setEnabled(false);
+					JOptionPane.showMessageDialog(f, "You must have selected at least 2 songs to create a marathon map!");
+				}
 			}break;
 		}
 	}
