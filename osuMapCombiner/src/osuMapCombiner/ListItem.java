@@ -16,6 +16,7 @@ public class ListItem{
 	String songTitle;
 	File file;
 	File songLoc;
+	File bgloc;
 	double songDuration=0;
 	double hpDrainRate=7;
 	double circleSize=7;
@@ -30,7 +31,12 @@ public class ListItem{
 	List<String> breaks;
 	boolean failed=false;
 	public ListItem(File f) {
+		
+		final int taskAmt = 5;
+		osuMapCombiner.updateProgressBarAmt(0,5);
+		
 		//this.songTitle=s;
+		this.file=f;
 		timingPoints = new ArrayList<String>();
 		hitObjects = new ArrayList<String>();
 		breaks = new ArrayList<String>();
@@ -41,7 +47,8 @@ public class ListItem{
 		int i =0 ;
 		
 		String targetString = "AudioFilename: ";
-		
+		///////
+		osuMapCombiner.updateProgressBarAmt(1,5);
 		do {
 			line = data[i++];
 		} while (!line.contains(targetString));
@@ -49,9 +56,28 @@ public class ListItem{
 		System.out.println("SongLoc: "+songLoc);
 		
 		File filer = new File(songTitle.replace(".osu", ".mp3"));
+		if (!new File(songTitle.replace(".osu", ".mp3")).exists()) {
+		    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		    PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+			String command = "ffmpeg -i \""+songLoc.getAbsolutePath()+"\" -f mp3 -b:a 128k -ar 44100 -ac 2 \""+songTitle.replace(".osu", ".mp3")+"\"";
+			CommandLine cmdLine = CommandLine.parse(command);
+			DefaultExecutor exec = new DefaultExecutor();
+			exec.setStreamHandler(streamHandler);
+			try {
+				exec.execute(cmdLine);
+				//System.out.println(filer.getName()+": "+mp3utils.GetSongDuration(filer.getAbsolutePath()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			filer.deleteOnExit();
+			
+			ParseTimestamp(outputStream);
+		}
+		//////
+		osuMapCombiner.updateProgressBarAmt(2,5);
 	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
-		String command = "ffmpeg -i \""+songLoc.getAbsolutePath()+"\" -f mp3 -b:a 128k -ar 44100 -ac 2 \""+songTitle.replace(".osu", ".mp3")+"\"";
+		String command = "ffmpeg -i \""+songTitle.replace(".osu", ".mp3")+"\"";
 		CommandLine cmdLine = CommandLine.parse(command);
 		DefaultExecutor exec = new DefaultExecutor();
 		exec.setStreamHandler(streamHandler);
@@ -61,24 +87,19 @@ public class ListItem{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		filer.deleteOnExit();
-		
-		String[] data2 = outputStream.toString().split("\n");
-		for (int h=0;h<data2.length;h++) {
-			if (data2[h].contains("Duration:")) {
-				String[] s = data2[h].split(",");
-				String timestamp = s[0].replace("Duration: ", "").trim();
-				String[] timestamp_s = timestamp.split(":");
-				int hrs = Integer.parseInt(timestamp_s[0]);
-				int min = Integer.parseInt(timestamp_s[1]);
-				double sec = Double.parseDouble(timestamp_s[2]);
-				
-				songDuration += hrs*60*60*1000;
-				songDuration += min*60*1000;
-				songDuration += sec*1000;
-			}
+		ParseTimestamp(outputStream);
+		//////
+		osuMapCombiner.updateProgressBarAmt(3,5);
+		command = "mp3val \""+songTitle.replace(".osu", ".mp3")+"\" -f -nb";
+		cmdLine = CommandLine.parse(command);
+		exec = new DefaultExecutor();
+		try {
+			exec.execute(cmdLine);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		
+		//////
+		osuMapCombiner.updateProgressBarAmt(4,5);
 		osuMapCombiner.duration += songDuration;
 		//osuMapCombiner.duration += songDuration = mp3utils.GetSongDuration(songLoc.getAbsolutePath());
 		System.out.println("Song duration of "+songTitle+" : "+songDuration+"ms");
@@ -133,6 +154,20 @@ public class ListItem{
 			if (line.trim().length()>3) {
 				if (line.trim().startsWith("2,") && line.split(",").length==3) {
 					breaks.add(line);
+				} else
+				if (line.trim().startsWith("0,0,")/* && line.split(",").length==5*/) {
+					bgloc = new File(f.getParent()+File.separatorChar+line.split(",")[2].replace("\"", ""));
+					try {
+						utils.copyFile(bgloc, new File(songTitle+"_BG.png"));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					//System.out.println("Background location found: "+bgloc);
+					/*File temp = new File(songTitle.split(".")[0]);
+					System.out.println(temp.getAbsolutePath());
+					if (!(temp.exists())) {
+						System.out.println("Does not exist");
+					}*/
 				}
 			}
 		} while (line.trim().length()>3);
@@ -165,6 +200,26 @@ public class ListItem{
 				}
 			}
 		} while (i<data.length && line.trim().length()>3);
+		////////
+		osuMapCombiner.updateProgressBarAmt(5,5);
+	}
+	private void ParseTimestamp(ByteArrayOutputStream outputStream) {
+		String[] data2 = outputStream.toString().split("\n");
+		songDuration=0;
+		for (int h=0;h<data2.length;h++) {
+			if (data2[h].contains("Duration:")) {
+				String[] s = data2[h].split(",");
+				String timestamp = s[0].replace("Duration: ", "").trim();
+				String[] timestamp_s = timestamp.split(":");
+				int hrs = Integer.parseInt(timestamp_s[0]);
+				int min = Integer.parseInt(timestamp_s[1]);
+				double sec = Double.parseDouble(timestamp_s[2]);
+				
+				songDuration += hrs*60*60*1000;
+				songDuration += min*60*1000;
+				songDuration += sec*1000;
+			}
+		}
 	}
 	public String getData() {
 		return songTitle;

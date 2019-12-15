@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import javax.swing.Box;
@@ -21,9 +22,12 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -32,7 +36,7 @@ import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.BitstreamException;
 import javazoom.jl.decoder.Header;
 
-public class osuMapCombiner extends JPanel implements ActionListener{
+public class osuMapCombiner extends JPanel implements ActionListener, ListSelectionListener{
 	
 	AddMap mapdialog = new AddMap();
 	public static DefaultListModel model = new DefaultListModel();
@@ -43,6 +47,9 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 	public static osuMapCombiner main;
 	public JButton button = new JButton("+");
 	public JButton button2 = new JButton("Combine");
+	public JButton button3 = new JButton("Remove");
+	public JButton button4 = new JButton("Duplicate");
+	public static JProgressBar progressBar = new JProgressBar();
 	
 	osuMapCombiner() {
 		osuMapCombiner.main = this;
@@ -54,7 +61,8 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 		l.setDropMode(DropMode.INSERT);
 		l.setTransferHandler(new ListTransferHandler());
 		
-		l.setPreferredSize(new Dimension(280,400));
+		l.setPreferredSize(new Dimension(280,360));
+		l.addListSelectionListener(this);
 		
 		Component c = Box.createRigidArea(new Dimension(240,32));
 		
@@ -64,6 +72,18 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 		button2.setActionCommand("Combine");
 		button2.setPreferredSize(new Dimension(360,24));
 		button2.addActionListener(this);
+		button3.setActionCommand("Remove");
+		button3.setPreferredSize(new Dimension(120,24));
+		button3.addActionListener(this);
+		button3.setEnabled(false);
+		button4.setActionCommand("Duplicate");
+		button4.setPreferredSize(new Dimension(120,24));
+		button4.addActionListener(this);
+		button4.setEnabled(false);
+		
+		progressBar.setStringPainted(true);
+		progressBar.setValue(0);
+		progressBar.setSize(240, 32);
 		
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.setResizable(false);
@@ -73,7 +93,10 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 		f.setLayout(layout);
 		
 		f.add(l);
-		f.add(c);
+		f.add(button3);
+		f.add(button4);
+		//f.add(c);
+		f.add(progressBar);
 		f.add(button);
 		f.add(button2);
 		f.pack();
@@ -84,7 +107,11 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 	}
 	
 	public static void main(String[] args) {
-		osuMapCombiner program = new osuMapCombiner();
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+	        public void run() {
+	    		osuMapCombiner program = new osuMapCombiner();
+	        }
+		});
 		/*
 		 * DETECT SONG DURATION
 		Header h = null;
@@ -127,6 +154,17 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 			case "Add": {
 				mapdialog.openDialog();
 			}break;
+			case "Duplicate": {
+				for (int i=0;i<l.getSelectedIndices().length;i++) {
+					AddMap.AddMap(((ListItem)model.getElementAt(l.getSelectedIndices()[i])).file);
+				}
+			}break;
+			case "Remove": {
+				for (int i=0;i<l.getSelectedIndices().length;i++) {
+					//System.out.println(Arrays.toString(l.getSelectedIndices()));
+					model.removeElementAt(l.getSelectedIndices()[i--]);
+				}
+			}break;
 			case "Combine":{
 				if (model.getSize()>=2) {
 						int pane = JOptionPane.showConfirmDialog(f,"A marathon map with all "+model.getSize()+" maps will be created. The total duration of the marathon map will be "+
@@ -141,5 +179,17 @@ public class osuMapCombiner extends JPanel implements ActionListener{
 				}
 			}break;
 		}
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		button3.setEnabled(l.getSelectedIndex()!=-1);
+		button4.setEnabled(l.getSelectedIndex()!=-1);
+	}
+
+	public static void updateProgressBarAmt(int i, int j) {
+		progressBar.setMaximum(j);
+		progressBar.setMinimum(0);
+		progressBar.setValue(i);
 	}
 }

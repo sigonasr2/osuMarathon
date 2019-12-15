@@ -155,8 +155,10 @@ BeatmapSetID:-1
  * 
  */
 		marathonMap.add("[Events]");
-		marathonMap.add("//Background and Video events\r\n" + 
-				"//Break Periods\r\n");
+		marathonMap.add("//Background and Video events\r\n");
+		ListItem firstmap = maps.get(0);
+		marathonMap.add("0,0,\""+firstmap.songTitle+"_BG.png\"");
+		marathonMap.add("//Break Periods\r\n");
 
 		timePoint=0;
 		remainder=0;
@@ -187,8 +189,24 @@ BeatmapSetID:-1
 		}
 		int breaksEndIndex = marathonMap.size()-1; // Store the last break so we can append to it a little later. 
 		
-				marathonMap.add("//Storyboard Layer 0 (Background)\r\n" + 
-				"//Storyboard Layer 1 (Fail)\r\n" + 
+		marathonMap.add("//Storyboard Layer 0 (Background)\r\n");
+		timePoint=firstmap.songDuration;
+		remainder=0;
+		for (int i=1;i<maps.size();i++) {
+			ListItem map = maps.get(i);
+			while (remainder>=1) {
+				timePoint++;
+				remainder--;
+			}
+			
+			marathonMap.add("Sprite,Background,Centre,\""+map.songTitle+"_BG.png\",320,240");
+			marathonMap.add(" F,0,"+(int)(timePoint-5000)+","+(int)(timePoint)+",0,1");
+			marathonMap.add(" F,0,"+(int)(timePoint)+","+(int)(timePoint+map.songDuration-5000)+",1");
+			marathonMap.add(" F,0,"+(int)(timePoint+map.songDuration-5000)+","+(int)(timePoint+map.songDuration)+",1,0");
+			
+			timePoint += map.songDuration;
+		}
+				marathonMap.add("//Storyboard Layer 1 (Fail)\r\n" + 
 				"//Storyboard Layer 2 (Pass)\r\n" + 
 				"//Storyboard Layer 3 (Foreground)\r\n" + 
 				"//Storyboard Layer 4 (Overlay)\r\n" + 
@@ -275,6 +293,9 @@ BeatmapSetID:-1
 			try {
 				File filer = new File(maps.get(i).songLoc.getName());
 				utils.copyFile(maps.get(i).songLoc, filer);
+				filer.deleteOnExit();
+				filer = new File(maps.get(i).songTitle+"_BG.png");
+				utils.copyFile(filer, new File(targetDir,maps.get(i).songTitle+"_BG.png"));
 				filer.deleteOnExit();
 			} catch (IOException e) {
 				e.printStackTrace();

@@ -3,7 +3,9 @@ package osuMapCombiner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
@@ -20,8 +22,7 @@ public class ListTransferHandler extends TransferHandler {
      * We only support importing strings.
      */
     public boolean canImport(TransferHandler.TransferSupport info) {
-        // Check for String flavor
-        if (!info.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        if (!info.isDataFlavorSupported(DataFlavor.stringFlavor) && !info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             return false;
         }
         return true;
@@ -73,6 +74,19 @@ public class ListTransferHandler extends TransferHandler {
         JList.DropLocation dl = (JList.DropLocation)info.getDropLocation();
         int index = dl.getIndex();
         boolean insert = dl.isInsert();
+        
+        //Try to get a file.
+        List l;
+        try {
+            l = (List)info.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+            for (int i=0;i<l.size();i++) {
+            	//System.out.println(l.get(i));
+            	//Attempt to import each file.
+            	AddMap.AddMap((File)l.get(i));
+            }
+            return false;
+        } 
+        catch (Exception e) {}
 
         // Get the string that is being dropped.
         Transferable t = info.getTransferable();
