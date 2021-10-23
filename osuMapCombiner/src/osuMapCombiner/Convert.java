@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -25,6 +26,7 @@ public class Convert {
 		
 		List<ListItem> maps = new ArrayList<ListItem>();
 		List<String> points = new ArrayList<String>();
+		List<TimingPoint> timingDatabase = new ArrayList<TimingPoint>();
 		double timePoint=0;
 		double remainder=0;
 		for (int i=0;i<osuMapCombiner.model.getSize();i++) {
@@ -40,25 +42,22 @@ public class Convert {
 				remainder--;
 			}
 			
-			if (timePoint!=0) {
-				for (int j=0;j<l.timingPoints.size();j++) {
-					String timingPoint = l.timingPoints.get(j);
-					String[] split = timingPoint.split(",");
-					Double timing = Double.parseDouble(split[0]);
-					/*if (j==0) {
-						timing=(int)timePoint;
-					} else {*/
-						timing+=timePoint;
-					//}
-					StringBuilder newString = new StringBuilder(Double.toString(timing));
-					for (int k=1;k<split.length;k++) {
-						newString.append(",");
-						newString.append(split[k]);
-					}
-					points.add(newString.toString());
+			for (int j=0;j<l.timingPoints.size();j++) {
+				String timingPoint = l.timingPoints.get(j);
+				String[] split = timingPoint.split(",");
+				Double timing = Double.parseDouble(split[0]);
+				/*if (j==0) {
+					timing=(int)timePoint;
+				} else {*/
+					timing+=timePoint;
+				//}
+				StringBuilder newString = new StringBuilder(Double.toString(timing));
+				for (int k=1;k<split.length;k++) {
+					newString.append(",");
+					newString.append(split[k]);
 				}
-			} else {
-				points.addAll(l.timingPoints);
+				timingDatabase.add(new TimingPoint(l.sliderMultiplier,newString.toString()));
+				points.add(newString.toString());
 			}
 			timePoint+=l.songDuration;
 		}
@@ -219,8 +218,16 @@ BeatmapSetID:-1
 				"//Storyboard Sound Samples");
 		marathonMap.add("");
 		marathonMap.add("[TimingPoints]");
-		for(int i=0;i<points.size();i++) {
-			marathonMap.add(points.get(i));
+		for(int i=0;i<timingDatabase.size();i++) {
+			String[] timingPoint = timingDatabase.get(i).timingPointData.split(Pattern.quote(","));
+			//marathonMap.add(timingDatabase.get(i));
+			if (Double.parseDouble(timingPoint[1])>=0) {
+				marathonMap.add(timingDatabase.get(i).timingPointData);
+				marathonMap.add(timingPoint[0]+","+((-((maxSliderMultiplier/timingDatabase.get(i).initialSliderVelocity)*100)))+","+timingPoint[2]+","+timingPoint[3]+","+timingPoint[4]+","+timingPoint[5]+","+timingPoint[6]+","+timingPoint[7]);
+			} else {
+				marathonMap.add(timingPoint[0]+","+((-(1d/(100/(-Double.parseDouble(timingPoint[1])))*(maxSliderMultiplier/timingDatabase.get(i).initialSliderVelocity)))*100)+","+timingPoint[2]+","+timingPoint[3]+","+timingPoint[4]+","+timingPoint[5]+","+timingPoint[6]+","+timingPoint[7]);
+			}
+			
 		}
 		marathonMap.add("");
 		
@@ -237,10 +244,10 @@ BeatmapSetID:-1
 				timePoint++;
 				remainder--;
 			}
-			double sliderMultiplierRatio = maxSliderMultiplier/map.sliderMultiplier;
 			for (int j=0;j<map.hitObjects.size();j++) {
 				String hitobject = map.hitObjects.get(j);
 				String[] split = hitobject.split(",");
+				int originalTime = Integer.parseInt(split[2]);
 				split[2] = Integer.toString(Integer.parseInt(split[2])+(int)timePoint);
 				if (j==0 && breakStartPoint!=-1) {
 					//Setup a break.
@@ -265,11 +272,6 @@ BeatmapSetID:-1
 						split[5] = Integer.toString(Integer.parseInt(split[5])+(int)timePoint);
 					} else {
 						//This is a slider.
-						if (split.length>=8) {
-							//Verified.
-							double sliderlength = Double.parseDouble(split[7]);
-							split[7] = Double.toString(sliderlength * sliderMultiplierRatio);
-						}
 					}
 				}
 				//Re-write the hit object.

@@ -61,7 +61,8 @@ public class osuMapCombiner extends JPanel implements ActionListener, ListSelect
 		l.setDropMode(DropMode.INSERT);
 		l.setTransferHandler(new ListTransferHandler());
 		
-		l.setPreferredSize(new Dimension(280,360));
+		//l.setMinimumSize(new Dimension(280,720));
+		pane.setPreferredSize(new Dimension(280,360));
 		l.addListSelectionListener(this);
 		
 		Component c = Box.createRigidArea(new Dimension(240,32));
@@ -92,7 +93,7 @@ public class osuMapCombiner extends JPanel implements ActionListener, ListSelect
 		FlowLayout layout = new FlowLayout();
 		f.setLayout(layout);
 		
-		f.add(l);
+		f.add(pane);
 		f.add(button3);
 		f.add(button4);
 		//f.add(c);
