@@ -171,8 +171,8 @@ public class osuMapCombiner extends JPanel implements ActionListener, ListSelect
 								(int)Math.floor(duration/1000)+"s long. Proceed?"
 					);
 					if (pane == JOptionPane.YES_OPTION) {
-						Convert.Convert();
 					}
+					Convert.Convert();
 				} else {
 					button2.setEnabled(false);
 					JOptionPane.showMessageDialog(f, "You must have selected at least 2 songs to create a marathon map!");

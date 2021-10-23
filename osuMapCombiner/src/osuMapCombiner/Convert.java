@@ -131,7 +131,13 @@ BeatmapSetID:-1
 		double averageOverallDifficulty = AverageValues(DifficultyValues.OverallDifficulty,maps);
 		double averageApproachRate = AverageValues(DifficultyValues.ApproachRate,maps);
 		double averageSliderMultiplier = AverageValues(DifficultyValues.SliderMultiplier,maps);
+		
 		double averageSliderTickRate = AverageValues(DifficultyValues.SliderTickRate,maps);
+		
+		double maxSliderMultiplier = 0;
+		for (int i=0;i<maps.size();i++) {
+			maxSliderMultiplier = Math.max(maps.get(i).sliderMultiplier,maxSliderMultiplier);
+		}
 		
 		System.out.println("Averages: "+averageHPDrain+"/"+averageCircleSize+"/"+averageOverallDifficulty+"/"+averageOverallDifficulty+"/"+averageApproachRate+"/"+averageSliderMultiplier+"/"+averageSliderTickRate);
 
@@ -140,7 +146,7 @@ BeatmapSetID:-1
 		marathonMap.add("CircleSize:"+(int)averageCircleSize);
 		marathonMap.add("OverallDifficulty:"+(int)averageOverallDifficulty);
 		marathonMap.add("ApproachRate:"+(int)averageApproachRate);
-		marathonMap.add("SliderMultiplier:1.0");
+		marathonMap.add("SliderMultiplier:"+maxSliderMultiplier);
 		marathonMap.add("SliderTickRate:"+(int)averageSliderTickRate);
 		marathonMap.add("");
 /*[Events]
@@ -231,7 +237,7 @@ BeatmapSetID:-1
 				timePoint++;
 				remainder--;
 			}
-			double sliderMultiplierRatio = 1.0d/map.sliderMultiplier;
+			double sliderMultiplierRatio = maxSliderMultiplier/map.sliderMultiplier;
 			for (int j=0;j<map.hitObjects.size();j++) {
 				String hitobject = map.hitObjects.get(j);
 				String[] split = hitobject.split(",");
