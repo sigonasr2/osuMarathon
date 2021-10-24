@@ -223,7 +223,7 @@ BeatmapSetID:-1
 			//marathonMap.add(timingDatabase.get(i));
 			if (Double.parseDouble(timingPoint[1])>=0) {
 				marathonMap.add(timingDatabase.get(i).timingPointData);
-				marathonMap.add(timingPoint[0]+","+((-((maxSliderMultiplier/timingDatabase.get(i).initialSliderVelocity)*100)))+","+timingPoint[2]+","+timingPoint[3]+","+timingPoint[4]+","+timingPoint[5]+","+timingPoint[6]+","+timingPoint[7]);
+				marathonMap.add(timingPoint[0]+","+((-((maxSliderMultiplier/timingDatabase.get(i).initialSliderVelocity)*100)))+","+timingPoint[2]+","+timingPoint[3]+","+timingPoint[4]+","+timingPoint[5]+",0,"+timingPoint[7]);
 			} else {
 				marathonMap.add(timingPoint[0]+","+((-(1d/(100/(-Double.parseDouble(timingPoint[1])))*(maxSliderMultiplier/timingDatabase.get(i).initialSliderVelocity)))*100)+","+timingPoint[2]+","+timingPoint[3]+","+timingPoint[4]+","+timingPoint[5]+","+timingPoint[6]+","+timingPoint[7]);
 			}
